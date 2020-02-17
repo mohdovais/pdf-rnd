@@ -2,6 +2,8 @@
 
 const clean_string = str => str.trim().replace(/\s+/g, " ");
 
+const number_safe = subject => (isNaN(subject) ? subject : Number(subject));
+
 /**
  *
  * @param {Array} array
@@ -52,7 +54,11 @@ function readDictionary(stream, dictionary) {
   return dictionary;
 }
 
-// array is buggy for number as start and end
+/**
+ * @param {Object} stream
+ * @param {Array} array
+ * @returns {Array}
+ */
 function readArray(stream, array) {
   var token = read(stream);
   var proceed = true;
@@ -64,7 +70,7 @@ function readArray(stream, array) {
       token = read(stream);
     } else {
       if (exec[1] !== "") {
-        array.push(exec[1]);
+        array.push(number_safe(exec[1]));
       }
       proceed = false;
     }
@@ -81,7 +87,7 @@ function readString(stream, array) {
     let exec = /(.*)\)$/.exec(token);
     if (exec === null) {
       array.push(token);
-      token = read(stream);
+      token = stream.read();
     } else {
       if (exec[1] !== "") {
         array.push(exec[1]);
@@ -103,11 +109,11 @@ function read(stream) {
   } else if (token === "false") {
     return false;
   } else if (token === "<<") {
-    // Dictinary
+    // Dictinary << A B >>
     let x = readDictionary(stream, {});
     return x;
   } else if (token.charAt(0) === "/") {
-    // Name
+    // /Name
     return token.substr(1);
   } else if (!isNaN(token)) {
     // Number or Reference
@@ -121,7 +127,10 @@ function read(stream) {
   } else if (token.charAt(0) === "[") {
     // Array
     let firstElement = token.substr(1);
-    return readArray(stream, firstElement === "" ? [] : [firstElement]);
+    return readArray(
+      stream,
+      firstElement === "" ? [] : [number_safe(firstElement)]
+    );
   } else if (token.charAt(0) === "(") {
     // String
     let length = token.length;
@@ -151,17 +160,19 @@ function stringUint8Array(str) {
 export function parseCOS(str) {
   var stream_regex = /stream\n([\s\S]+)\nendstream*/;
   var hasStream = stream_regex.test(str);
-  var stringStream = null;
   var root = [];
 
+  // extract `stream` text
+  var stringStream = null;
   if (hasStream) {
     str = str.replace(stream_regex, function(a, b) {
       stringStream = b;
       return "";
     });
   }
-  var array_stream = createStream(clean_string(str).split(" "));
 
+  // convert COS to JSON without stream
+  var array_stream = createStream(clean_string(str).split(" "));
   while (!array_stream.eof()) {
     let x = read(array_stream);
     root.push(x);
@@ -171,7 +182,15 @@ export function parseCOS(str) {
     let compressed = stringUint8Array(stringStream);
     let inflate = new Zlib.Inflate(compressed);
     let plain = inflate.decompress();
-    root.push(Array.prototype.map.call(plain, x=> String.fromCharCode(x)).join(''));
+    let flatStream = Array.prototype.map
+      .call(plain, x => String.fromCharCode(x))
+      .join("");
+
+    if (root.length === 1) {
+      root[0].stream = flatStream;
+    } else {
+      root.push(flatStream);
+    }
   }
 
   return root.length === 1 ? root[0] : root;
