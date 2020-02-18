@@ -4,6 +4,8 @@ const clean_string = str => str.trim().replace(/\s+/g, " ");
 
 const number_safe = subject => (isNaN(subject) ? subject : Number(subject));
 
+const date_regex = /\(D:(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?([-+Z])(\d{2})'(\d{2})'\)/;
+
 /**
  *
  * @param {Array} array
@@ -99,6 +101,28 @@ function readString(stream, array) {
   return array.join(" ");
 }
 
+/**
+ * 0: "(D:20200217202038Z00'00')"
+ */
+function readDate(str) {
+  const d = date_regex.exec(str);
+  return (
+    d[1] +
+    "-" +
+    (d[2] || "00") +
+    "-" +
+    (d[3] || "00") +
+    "T" +
+    (d[4] || "00") +
+    ":" +
+    (d[5] || "00") +
+    ":" +
+    (d[6] || "00") +
+    ".000" +
+    (d[7] === "Z" ? "Z" : d[7] + (d[8] || "00") + ":" + (d[9] || "00"))
+  );
+}
+
 // unicode missing /uF607
 // hexadecimal data enclosed in angle brackets: < > missing
 function read(stream) {
@@ -112,7 +136,7 @@ function read(stream) {
     // Dictinary << A B >>
     let x = readDictionary(stream, {});
     return x;
-  } else if (token.charAt(0) === "/") {
+  } else if (/^\/[A-Z0-9]/.test(token)) {
     // /Name
     return token.substr(1);
   } else if (!isNaN(token)) {
@@ -131,13 +155,14 @@ function read(stream) {
       stream,
       firstElement === "" ? [] : [number_safe(firstElement)]
     );
+  } else if (date_regex.test(token)) {
+    return readDate(token);
   } else if (token.charAt(0) === "(") {
+    //====================
     // String
-    let length = token.length;
-    if (token === "()") {
-      return "";
-    } else if (token.charAt(length - 1) === ")") {
-      return token.substr(1, length - 1);
+    let exec;
+    if ((exec = /^\((.*)\)$/.exec(token))) {
+      return exec[1];
     } else {
       let firstElement = token.substr(1);
       return readString(stream, firstElement === "" ? [] : [firstElement]);

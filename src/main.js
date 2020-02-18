@@ -51,10 +51,10 @@ export function main(str) {
   //console.log(objs[18][1]);
   const objs = parseObj(str);
   const trailer = parseTrailer(str);
-  const root = replaceWithRef(objs[getRefIndex(trailer.Root)], objs);
-  //const info = objs[getRefIndex(trailer.Info)];
+  //const root = replaceWithRef(objs[getRefIndex(trailer.Root)], objs);
+  const trailer2 = replaceWithRef(trailer, objs);
   //console.log(objs[getRefIndex(trailer.Root)])
 
-  console.log(root);
-  //console.log(info);
+  //console.log(root);
+  console.log(trailer2);
 }
