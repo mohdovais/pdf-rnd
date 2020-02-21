@@ -8,25 +8,23 @@
 </head>
 
 <body>
+    <div id="content"></div>
     <script src="vendor/zlib.js"></script>
     <script type="module">
         import { main } from './src/main.js';
-
-        /*
-        fetch('example.pdf')
-            .then(response => response.arrayBuffer())
-            .then(arrayBuffer => new Uint8Array(arrayBuffer))
-        */
-
+        var then = performance.now()
         fetch('example.pdf')
             .then(response => response.arrayBuffer())
             .then(arrayBuffer => {
                 return Array.prototype.map.call(
-                    new Uint8Array(arrayBuffer), 
+                    new Uint8Array(arrayBuffer),
                     code => String.fromCharCode(code)
                 ).join('')
             })
-            .then(main)
+            .then(main).then(pdf => {
+                document.getElementById('content').innerHTML = pdf.pages.map(str => `<pre>${str}</pre>`).join('<hr/>')
+                console.log(performance.now() - then)
+            })
     </script>
 </body>
 

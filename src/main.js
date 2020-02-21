@@ -1,11 +1,8 @@
 import { parseObj } from "./parser/obj.js";
 import { parseTrailer } from "./parser/trailer.js";
+import { parseText } from "./parser/text.js";
 
 const regex_ref = /(\d+) \d+ R/;
-
-function getRefIndex(ref) {
-  return regex_ref.exec(ref)[1] | 0;
-}
 
 /**
  * Using mutation for memory performance
@@ -46,15 +43,12 @@ function replaceWithRef(subject, array) {
  * @param {string} str
  */
 export function main(str) {
-  //console.log(str)
+  const pdf = replaceWithRef(parseTrailer(str), parseObj(str));
 
-  //console.log(objs[18][1]);
-  const objs = parseObj(str);
-  const trailer = parseTrailer(str);
-  //const root = replaceWithRef(objs[getRefIndex(trailer.Root)], objs);
-  const trailer2 = replaceWithRef(trailer, objs);
-  //console.log(objs[getRefIndex(trailer.Root)])
-
-  //console.log(root);
-  console.log(trailer2);
+  return {
+    info: pdf.Info,
+    pages: pdf.Root.Pages.Kids.map(function(kid) {
+      return parseText(kid.Contents.stream);
+    })
+  };
 }

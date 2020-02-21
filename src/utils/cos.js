@@ -1,51 +1,11 @@
 //http://what-when-how.com/itext-5/understanding-the-carousel-object-system-itext-5/
+import { createStream } from "./stream.js";
 
 const clean_string = str => str.trim().replace(/\s+/g, " ");
 
 const number_safe = subject => (isNaN(subject) ? subject : Number(subject));
 
 const date_regex = /\(D:(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?([-+Z])(\d{2})'(\d{2})'\)/;
-
-/**
- *
- * @param {Array} array
- */
-function createStream(array) {
-  var index = 0;
-  var length = array.length;
-
-  function read() {
-    var item;
-    if (index < length) {
-      item = array[index];
-      index++;
-    }
-    return item;
-  }
-
-  /**
-   *
-   * @param {number} relativeIndex
-   */
-  function seek(relativeIndex = 1) {
-    var item;
-    var i = index + relativeIndex - 1;
-    if (i < length) {
-      item = array[i];
-    }
-    return { index, item };
-  }
-
-  function skip(relativeIndex) {
-    index += relativeIndex;
-  }
-
-  function eof() {
-    return !(index < length);
-  }
-
-  return { read, seek, skip, eof };
-}
 
 function readDictionary(stream, dictionary) {
   var token = read(stream);
