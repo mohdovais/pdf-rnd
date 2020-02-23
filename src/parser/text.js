@@ -1,4 +1,4 @@
-import { createStream } from "../utils/stream.js";
+import { createStream } from "./stream.js";
 
 export function parseText(content) {
   const stream = createStream(content);

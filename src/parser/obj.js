@@ -1,4 +1,4 @@
-import { parseCOS } from "../utils/cos.js";
+import { parseCOS } from "./cos.js";
 /**
  * Pattern:
  *    5 0 obj

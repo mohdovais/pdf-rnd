@@ -1,5 +1,7 @@
 //http://what-when-how.com/itext-5/understanding-the-carousel-object-system-itext-5/
+
 import { createStream } from "./stream.js";
+import { Inflate } from "../vendor/zlib.esm.js";
 
 const clean_string = str => str.trim().replace(/\s+/g, " ");
 
@@ -165,7 +167,7 @@ export function parseCOS(str) {
 
   if (hasStream) {
     let compressed = stringUint8Array(stringStream);
-    let inflate = new Zlib.Inflate(compressed);
+    let inflate = new Inflate(compressed);
     let plain = inflate.decompress();
     let flatStream = Array.prototype.map
       .call(plain, x => String.fromCharCode(x))

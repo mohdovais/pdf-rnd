@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Parse ES6 Module</title>
+</head>
+
+<body>
+    <div id="content"></div>
+    <script type="module">
+        import { parse } from './build/bundle.esm.js';
+        var then = performance.now()
+        fetch('example.pdf')
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => {
+                return Array.prototype.map.call(
+                    new Uint8Array(arrayBuffer),
+                    code => String.fromCharCode(code)
+                ).join('')
+            })
+            .then(parse)
+            .then(pdf => {
+                document.getElementById('content').innerHTML = pdf.pages.map(str => `<pre>${str}</pre>`).join('<hr/>')
+                console.log(performance.now() - then)
+            })
+    </script>
+</body>
+
+</html>

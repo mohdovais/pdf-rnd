@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Parse ES5 UMD</title>
+</head>
+
+<body>
+    <div id="content"></div>
+    <script src="build/bundle.umd.js"></script>
+    <script>
+        (function () {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "example.pdf", true);
+            xhr.responseType = "arraybuffer";
+
+            xhr.onload = function (oEvent) {
+                var arrayBuffer = xhr.response;
+                var then = performance.now();
+                var str = '';
+                var byteArray, i, pdf;
+                if (arrayBuffer) {
+                    byteArray = new Uint8Array(arrayBuffer);
+                    for (i = 0; i < byteArray.byteLength; i++) {
+                        str += String.fromCharCode(byteArray[i]);
+                    }
+                    pdf = PDFText.parse(str);
+                    document.getElementById('content').innerHTML = pdf.pages
+                        .map(str => `<pre>${str}</pre>`)
+                        .join('<hr/>');
+
+                    console.log(performance.now() - then)
+                }
+            };
+
+            xhr.send(null);
+        }());
+    </script>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-import { parseCOS } from "../utils/cos.js";
+import { parseCOS } from "./cos.js";
 
 /**
  *

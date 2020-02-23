@@ -1,6 +1,6 @@
 /**
  *
- * @param {Array} array
+ * @param {Array|String} array
  */
 export function createStream(array) {
   var index = 0;
@@ -28,10 +28,17 @@ export function createStream(array) {
     return { index, item };
   }
 
+  /**
+   *
+   * @param {number} relativeIndex
+   */
   function skip(relativeIndex = 1) {
     index += relativeIndex;
   }
 
+  /**
+   * @returns {Boolean}
+   */
   function eof() {
     return !(index < length);
   }

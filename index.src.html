@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Parse ES6 Source</title>
+</head>
+
+<body>
+    <div id="content"></div>
+    <script type="module">
+        import { parse } from './src/main.js';
+        var then;
+        fetch('example.pdf')
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => {
+                then = performance.now();
+                return Array.prototype.map.call(
+                    new Uint8Array(arrayBuffer),
+                    code => String.fromCharCode(code)
+                ).join('')
+            })
+            .then(parse)
+            .then(pdf => {
+                document.getElementById('content').innerHTML = pdf.pages.map(str => `<pre>${str}</pre>`).join('<hr/>')
+                console.log(performance.now() - then)
+            })
+    </script>
+</body>
+
+</html>
