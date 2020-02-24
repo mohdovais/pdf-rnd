@@ -2,88 +2,14 @@
 
 import { createStream } from "./stream.js";
 import { Inflate } from "../vendor/zlib.esm.js";
+import { date_regex, readDate } from "./reader/date.js";
+import { readString } from "./reader/string.js";
+import { readDictionary } from "./reader/dictionary.js";
+import { readArray } from "./reader/array.js";
 
 const clean_string = str => str.trim().replace(/\s+/g, " ");
-
 const number_safe = subject => (isNaN(subject) ? subject : Number(subject));
-
-const date_regex = /\(D:(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?([-+Z])(\d{2})'(\d{2})'\)/;
-
-function readDictionary(stream, dictionary) {
-  var token = read(stream);
-  while (token !== ">>") {
-    dictionary[token] = read(stream);
-    token = read(stream);
-  }
-  return dictionary;
-}
-
-/**
- * @param {Object} stream
- * @param {Array} array
- * @returns {Array}
- */
-function readArray(stream, array) {
-  var token = read(stream);
-  var proceed = true;
-
-  while (proceed) {
-    let exec = /(.*)]$/.exec(token);
-    if (exec === null) {
-      array.push(token);
-      token = read(stream);
-    } else {
-      if (exec[1] !== "") {
-        array.push(number_safe(exec[1]));
-      }
-      proceed = false;
-    }
-  }
-
-  return array;
-}
-
-function readString(stream, array) {
-  var token = read(stream);
-  var proceed = true;
-
-  while (proceed) {
-    let exec = /(.*)\)$/.exec(token);
-    if (exec === null) {
-      array.push(token);
-      token = stream.read();
-    } else {
-      if (exec[1] !== "") {
-        array.push(exec[1]);
-      }
-      proceed = false;
-    }
-  }
-
-  return array.join(" ");
-}
-
-/**
- * 0: "(D:20200217202038Z00'00')"
- */
-function readDate(str) {
-  const d = date_regex.exec(str);
-  return (
-    d[1] +
-    "-" +
-    (d[2] || "00") +
-    "-" +
-    (d[3] || "00") +
-    "T" +
-    (d[4] || "00") +
-    ":" +
-    (d[5] || "00") +
-    ":" +
-    (d[6] || "00") +
-    ".000" +
-    (d[7] === "Z" ? "Z" : d[7] + (d[8] || "00") + ":" + (d[9] || "00"))
-  );
-}
+const stream_regex = /stream\n([\s\S]+)\nendstream*/;
 
 // unicode missing /uF607
 // hexadecimal data enclosed in angle brackets: < > missing
@@ -138,14 +64,13 @@ function stringUint8Array(str) {
   var length = str.length;
   var bytes = new Uint8Array(length);
   for (var i = 0; i < length; i++) {
-    var ascii = str.charCodeAt(i);
-    bytes[i] = ascii;
+    var asciiCode = str.charCodeAt(i);
+    bytes[i] = asciiCode;
   }
   return bytes;
 }
 
 export function parseCOS(str) {
-  var stream_regex = /stream\n([\s\S]+)\nendstream*/;
   var hasStream = stream_regex.test(str);
   var root = [];
 

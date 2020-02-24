@@ -45,3 +45,11 @@ export function createStream(array) {
 
   return { read, seek, skip, eof };
 }
+
+/**
+ * Small util function to minimize file size
+ * @param {Stream} stream 
+ */
+export function read(stream) {
+  return stream.read();
+}
